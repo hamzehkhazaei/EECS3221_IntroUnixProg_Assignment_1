@@ -1,11 +1,9 @@
-# EECS3221_IntroUnixProg
-# HW1 - Unix Programming and GDB Debugging Tutorial
-**CS 238P Operating Systems**  
+# EECS3221: Unix Programming and GDB Debugging Tutorial
 **Due Date:** [Insert due date]  
 **Points:** 100
 
 ## Overview
-This assignment is designed as a hands-on tutorial to familiarize you with building simple Unix programs and debugging them using GDB (GNU Debugger). You'll work through progressively complex examples while learning essential debugging techniques.
+This assignment is designed as a hands-on tutorial to familiarize you with building simple Unix programs and debugging them using GDB (GNU Debugger). You'll work through progressively complex examples as you learn essential debugging techniques.
 
 ## Learning Objectives
 By completing this assignment, you will:
@@ -17,7 +15,7 @@ By completing this assignment, you will:
 - Practice systematic debugging methodology
 
 ## Prerequisites
-- Access to a Unix/Linux system (use lab machines or set up a VM)
+- Access to a Unix/Linux system (use EECS lab servers or set up a Unix-based VM)
 - Basic C programming knowledge
 - Text editor of your choice (vim, emacs, nano, or IDE)
 
@@ -28,23 +26,33 @@ Create a simple "Hello World" program to ensure your development environment is 
 
 1. Create a file called `hello.c`:
 ```c
+#include <stdlib.h>
+#include <unistd.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <string.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
-int main() {
-    printf("Hello, Unix Programming!\n");
-    return 0;
+int main(void) {
+    
+    printf("Hello world\n"); 
+    return 0; 
 }
+
 ```
 
 2. Compile and run:
 ```bash
-gcc -o hello hello.c
-./hello
+$ gcc -o hello hello.c
+$ ./hello
 ```
 
 3. Verify GDB is installed:
 ```bash
-gdb --version
+$ gdb --version
 ```
 
 **Deliverable:** Screenshot showing successful compilation and GDB version.
@@ -113,7 +121,7 @@ int main(int argc, char *argv[]) {
 ```
 
 ### Task 2.2: Create a Makefile
-Create a `Makefile` for your calculator:
+Create a `Makefile` by default name as `Makefile` for your calculator:
 
 ```makefile
 CC=gcc
@@ -132,6 +140,12 @@ debug: $(TARGET)
 
 .PHONY: clean debug
 ```
+**Compiling and Running:**
+```bash
+$ make
+$ ./calculator 8 + 9
+```
+**Note:** As can be seen in the line that defines `CFLAGS`, we have `-g`, which compiles your program with debugging symbols. This will allow us to start your program under the control of gdb.
 
 **Deliverable:** Working calculator program with Makefile that compiles without warnings.
 
@@ -140,11 +154,11 @@ debug: $(TARGET)
 ### Task 3.1: Basic GDB Commands
 Using your calculator program, practice these GDB commands:
 
-1. **Starting GDB:**
+1. **Starting GDB:** Here you have two ways to start GDB for your `calculator` program.
 ```bash
-make debug
+$ make debug
 # or
-gdb ./calculator
+$ gdb ./calculator
 ```
 
 2. **Practice these commands inside GDB:**
@@ -162,264 +176,181 @@ gdb ./calculator
 (gdb) continue
 (gdb) quit
 ```
+GDB is a feature-rich debugger, and it will take you some time to learn all the features. While you don't need to be a master of GDB for this course, you may use AI tools to become more familiar with GDB, if interested.
+At a high level, you need only two main things: 1) breakpoints and 2) the ability to examine data. Breakpoints can be set with the `b` command inside gdb.
 
 ### Task 3.2: Debugging Exercise
-Create a buggy version of your calculator called `buggy_calc.c` with intentional errors:
+For this section, let us consider the following program:
 
 ```c
-#include <stdio.h>
 #include <stdlib.h>
-
-int add(int a, int b) {
-    return a + b;
-}
-
-int main(int argc, char *argv[]) {
-    // Bug 1: Off-by-one error in argument check
-    if (argc != 3) {  // Should be 4!
-        printf("Usage: %s <num1> <operator> <num2>\n", argv[0]);
-        return 1;
-    }
-    
-    int num1 = atoi(argv[1]);
-    int num2 = atoi(argv[3]);
-    
-    // Bug 2: Uninitialized variable
-    int result;
-    char op = argv[2][0];
-    
-    if (op == '+') {
-        result = add(num1, num2);
-    }
-    // Bug 3: Missing else cases - result might be uninitialized
-    
-    printf("Result: %d\n", result);
-    return 0;
-}
-```
-
-Use GDB to:
-1. Find and fix the argument count bug
-2. Identify the uninitialized variable issue
-3. Test with different inputs
-
-**Deliverable:** Document the bugs you found and how GDB helped you identify them.
-
-## Part 4: Advanced Debugging - Segmentation Faults (25 points)
-
-### Task 4.1: Debug Memory Issues
-Create `memory_bug.c` with common memory errors:
-
-```c
+#include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
+#include <fcntl.h>
 #include <string.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
-void process_string(char *str) {
-    // Bug: No null check
-    int len = strlen(str);
-    printf("String length: %d\n", len);
-    
-    // Bug: Writing past array bounds
-    char buffer[5];
-    strcpy(buffer, str);  // Potential buffer overflow
-    printf("Copied: %s\n", buffer);
+
+unsigned long sum(int n) {
+    int i;
+    unsigned long sum = 0;
+    for (i = 0; i < n; i++) {
+        sum = sum + i;
+    }
+    return sum;
 }
-
-int main() {
-    char *ptr = NULL;
-    
-    printf("Testing with NULL pointer...\n");
-    process_string(ptr);  // Will cause segfault
-    
-    printf("Testing with long string...\n");
-    process_string("This string is way too long for the buffer");
-    
+int main(void) {
+    printf("Hello world\n"); 
+    unsigned long s;
+    s = sum(100);
+    printf("Sum:%ld\n", s);
     return 0;
 }
+
+```
+Let us compile the program with debugging symbols (`-g` flag):
+```bash
+$ gcc main.c -o hello -Wall -g 
 ```
 
-### Task 4.2: Use GDB to Debug Crashes
-1. Compile with debug symbols: `gcc -g -o memory_bug memory_bug.c`
-2. Run in GDB: `gdb ./memory_bug`
-3. When it crashes, use these commands:
-```gdb
-(gdb) run
-(gdb) backtrace
-(gdb) frame 0
-(gdb) print str
-(gdb) print ptr
+Running the program independently is not particularly useful. Let's try setting a breakpoint on the "main" function to examine what the program is doing. 
+Type break main in the GDB command prompt (or b for short) and then run the program with r.
+
+```bash
+(gdb) break main
+Breakpoint 1 at 0x56b: file main.c, line 21.
+(gdb) r
+Starting program: ...  
+Breakpoint 1, main () at main.c:21
+26          s = sum(100);
+(gdb)
+```
+The debugger stopped at the beginning of the `main` function (line 26 of main.c). You can examine the source code of the program by typing `list` (or l for short).
+
+```bash
 (gdb) list
+16        sum = sum + i;
+17    }
+18    return sum;
+19 }
+20 int main(void) {
+21    printf("Hello world\n"); 
+22    unsigned long s;
+23    s = sum(100);
+24    printf("Sum:%ld\n", s);
+25    return 0;
 ```
 
-4. Fix the bugs and test again
+Now you can execute the program line by line by typing `next` (or' n' for short), which executes the following line. By default, typing `next` will skip over functions. Type `step` (or s for short) to step into a function. 
+Try stepping into the `sum` function by running `step`.
 
-**Deliverable:** Fixed version of `memory_bug.c` with explanations of what caused each crash.
+```bash
+(gdb) s
+sum (n=100) at main.c:14
+14    unsigned long sum = 0;
+```
+We are now inside the `sum` function. Type `l` to list the source code, and then type `n` repeatedly to execute the function line by line. 
+Note that we can also type `n` once, and then simply hit `Enter`, asking GDB to execute the last command for us.
 
-## Part 5: Multi-file Project Debugging (20 points)
+```bash
+(gdb) l
+9 #include <sys/wait.h>
+10	
+11	
+12 unsigned long sum(int n) {
+13    int i;
+14    unsigned long sum = 0;
+15    for (i = 0; i < n; i++) {
+16        sum = sum + i;
+17    }
+18    return sum;
+(gdb) n
+15    for (i = 0; i < n; i++) {
+(gdb) 
+16        sum = sum + i;
+(gdb) 
+15    for (i = 0; i < n; i++) {
+(gdb) 
+16        sum = sum + i;
+(gdb) 
 
-### Task 5.1: Create a Multi-file Project
-Create a simple student grade manager:
-
-**student.h:**
-```c
-#ifndef STUDENT_H
-#define STUDENT_H
-
-#define MAX_STUDENTS 100
-#define MAX_NAME_LEN 50
-
-typedef struct {
-    char name[MAX_NAME_LEN];
-    int id;
-    float grade;
-} Student;
-
-void add_student(Student students[], int *count, const char *name, int id, float grade);
-void print_students(Student students[], int count);
-float calculate_average(Student students[], int count);
-Student* find_student(Student students[], int count, int id);
-
-#endif
 ```
 
-**student.c:**
-```c
-#include <stdio.h>
-#include <string.h>
-#include "student.h"
+## TUI: Graphical User Interface
+The second most helpful feature is the TUI mode, which turns GDB into a modern debugger.
 
-void add_student(Student students[], int *count, const char *name, int id, float grade) {
-    if (*count >= MAX_STUDENTS) {
-        printf("Cannot add more students\n");
-        return;
-    }
-    
-    strcpy(students[*count].name, name);
-    students[*count].id = id;
-    students[*count].grade = grade;
-    (*count)++;
-}
-
-void print_students(Student students[], int count) {
-    printf("\n--- Student List ---\n");
-    for (int i = 0; i < count; i++) {
-        printf("ID: %d, Name: %s, Grade: %.2f\n", 
-               students[i].id, students[i].name, students[i].grade);
-    }
-}
-
-float calculate_average(Student students[], int count) {
-    if (count == 0) return 0.0;
-    
-    float sum = 0.0;
-    for (int i = 0; i < count; i++) {
-        sum += students[i].grade;
-    }
-    return sum / count;
-}
-
-Student* find_student(Student students[], int count, int id) {
-    for (int i = 0; i < count; i++) {
-        if (students[i].id == id) {
-            return &students[i];
-        }
-    }
-    return NULL;
-}
+You can switch into TUI by pressing Ctrl-X and then typing "1", or start gdb in TUI mode immediately.
+```
+$ gdb hello -tui
 ```
 
-**main.c:**
-```c
-#include <stdio.h>
-#include "student.h"
+You can also type `tui enable` in the gdb command prompt. Start the program from the beginning and single `step` it with `n` and `s`. The source code of the program will scroll in the TUI window at the top of the screen.
 
-int main() {
-    Student students[MAX_STUDENTS];
-    int count = 0;
-    
-    // Add some students
-    add_student(students, &count, "Alice Johnson", 101, 85.5);
-    add_student(students, &count, "Bob Smith", 102, 92.0);
-    add_student(students, &count, "Carol Davis", 103, 78.5);
-    
-    print_students(students, count);
-    
-    printf("\nClass average: %.2f\n", calculate_average(students, count));
-    
-    // Find a student
-    Student *found = find_student(students, count, 102);
-    if (found) {
-        printf("Found student: %s with grade %.2f\n", found->name, found->grade);
-    }
-    
-    return 0;
-}
+### Examining data
+You can print the values of variables with `print` or `p` for short, e.g., print the values of i and sum:
+```
+(gdb) p i
+(gdb) p sum
 ```
 
-### Task 5.2: Advanced Makefile and Debugging
-Create an advanced Makefile:
+## Conditional breakpoints
+While debugging programs, it's often helpful to see what the program is doing right before it crashes. One way to do this is to step through, one at a time, every statement of the program until we reach the point of execution where we want to examine the state of the program. This works, but sometimes you may wish to just run until you get a particular section of code based on a condition, and stop execution at that point so you can examine data at that point of execution.
 
-```makefile
-CC=gcc
-CFLAGS=-Wall -Wextra -std=c99 -g
-TARGET=grade_manager
-SOURCES=main.c student.c
-OBJECTS=$(SOURCES:.c=.o)
-HEADERS=student.h
+For instance, in the `sum` function, you might want to examine the state of the program when the index i is equal to 50. You can single `step` until `i` increments and reaches the value 50, but this would be very tedious.
 
-$(TARGET): $(OBJECTS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJECTS)
+GDB allows you to set conditional breakpoints. To set a conditional breakpoint to break inside the loop of the `sum` function when the index `i` is equal to 50, we do the following: 
+first, `list` the source code to get the exact source lines; second, set a breakpoint inside the `main.c` file at line 16 with break main.c:16; third, to make the breakpoint trigger only when i is equal to 50 
+(and not trigger for every iteration of the loop) We type `condition 2 i==50`. 
 
-%.o: %.c $(HEADERS)
-	$(CC) $(CFLAGS) -c $< -o $@
+```
+$gdb main
+...
+(gdb) break main
+(gdb) l
+7 #include <sys/types.h>
+8 #include <sys/stat.h>
+9 #include <sys/wait.h>
+10	
+11	
+12 unsigned long sum(int n) {
+13    int i;
+14    unsigned long sum = 0;
+15    for (i = 0; i < n; i++) {
+16        sum = sum + I;
 
-clean:
-	rm -f $(TARGET) $(OBJECTS)
+(gdb) break main.c:16
+Breakpoint 2 at 0x4005ee: file main.c, line 16.
 
-debug: $(TARGET)
-	gdb ./$(TARGET)
-
-valgrind: $(TARGET)
-	valgrind --leak-check=full ./$(TARGET)
-
-.PHONY: clean debug valgrind
+(gdb) condition 2 i==50
 ```
 
-Practice debugging across multiple files:
-1. Set breakpoints in different files
-2. Step through function calls between files
-3. Examine the call stack
-4. Use `info functions` and `info variables`
+Note that the 2 in the condition refers to the breakpoint number we were notified about when we initially set the breakpoint. We can also achieve the above in one command statement with the following:
+```
+(gdb) break main.c:16 if i==50
+```
+We now `run` (if you have not already) and continue execution of the program with the `continue` or `c` command.
+```
+(gdb) r
+(gdb) c
+Continuing.
+Breakpoint 2, sum (n=100) at main.c:16
+16              sum = sum + I;
+```
+When the breakpoint is hit, we can check if the value of i is really 50:
+```
+(gdb) p i
+$1 = 50
+(gdb)
+```
 
-**Deliverable:** Working multi-file project with detailed debugging session log.
+## Exploring crashes
 
-## Submission Requirements
 
-Submit a ZIP file containing:
 
-1. **Source Files:**
-   - All `.c` and `.h` files from each part
-   - All Makefiles
-   - Fixed versions of buggy programs
 
-2. **Documentation:**
-   - `README.md` with compilation and running instructions
-   - `debugging_log.txt` documenting your debugging sessions
-   - Screenshots of successful compilations and program runs
-
-3. **Reflection Report:**
-   - Brief summary of what you learned about Unix programming
-   - Most challenging debugging scenario and how you solved it
-   - Comparison of debugging with and without GDB
-
-## Grading Rubric
-
-- **Part 1 (10%):** Environment setup and basic compilation
-- **Part 2 (20%):** Calculator program and Makefile correctness
-- **Part 3 (25%):** GDB command proficiency and bug identification
-- **Part 4 (25%):** Memory debugging and crash analysis
-- **Part 5 (20%):** Multi-file project and advanced debugging
 
 ## Tips for Success
 
