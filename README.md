@@ -424,26 +424,26 @@ We know that line `17` is the line that causes the crash. We can print the value
 (gdb) p i
 $1 = 34792
 ```
-It is equal to 34792. This should provide you with enough information on why you crashed (i.e., out-of-bounds access, which is illegal). 
+It is equal to 34792. This should provide you with enough information on why you crashed (i.e., out-of-bounds access, which is an illegal operation). 
 Now fix the `faulty_array` function to prevent the program from crashing.
 
-**Deliverable:** Fix the `faultyarray.c` program and submit it as `correctarray.c`.
+**Deliverable:** Fix the `faultyarray.c` program and submit the correct version as `correctarray.c`.
 
 
 ## Part 2: A Simple UNIX Program
-### cat program (mycat)
+### Reimplementation of cat program
 Use the simple `hello.c` code presented at the beginning of this assignment as a starting point for a simple cat program that you should implement. 
 First, copy the `hello.c` into a program called `mycat.c`. Our cat program displays the contents of a single file on the standard output, like the standard `cat` program
 on Unix operating systems. It takes either one or no arguments. If one argument is provided (the name of the file), 
 then the program simply displays the contents on standard output. If no argument is given, the program simply shows the content of the standard input on the standard output.
 
-Here is an example invocation which displays the contents of a file `file.c`, with the name of the file provided as an argument (assuming you call your executable `mycat`):
+Here is an example invocation which displays the contents of a file `test.txt`, with the name of the file provided as an argument (assuming you call your executable `mycat`):
 ```
-$ ./mycat file.c
+$ ./mycat test.txt
 ```
 Or it should also work like this, where standard input has been redirected to the file:
 ```
-$ ./mycat < file.c
+$ ./mycat < test.txt
 ```
 You should use `read()` and `write()` system calls to read the input and write the output. Since `mycat` takes command line arguments, you should change the definition of the `main()` 
 function to allow passing of command line arguments like:
@@ -465,7 +465,7 @@ Instead, you are expected to use the `open`, `read`, `write`, and `close` system
 Submit `mycat.c` as the deliverable for this part.
 
 ## What to submit?
-Please name the C files `correctarray.c` for part 1, and `mycat.c` along with it's `Makefile` for part 2. Place each part of the assignment into folders with name `part1`, `part2`, then pack them into a zip archive. 
+Please name the C files `correctarray.c` for part 1, and `mycat.c` along with it's `Makefile` for part 2. Place each part of the assignment into folders with names `part1`, `part2`, then pack them into a zip archive. 
 Please note that `part1` and `part2` must be in the root of the zip archive, not inside yet another folder. 
 Additionally, you can include a `readme.txt` file in the root folder of your zip file to provide instructions on how to run your programs.
 
