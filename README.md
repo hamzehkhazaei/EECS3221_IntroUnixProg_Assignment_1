@@ -18,7 +18,7 @@ By completing this assignment, you will:
 - Basic C programming knowledge
 - Text editor of your choice (vim, emacs, nano, or IDE)
 
-## Part 1: Setting Up Your Environment 
+## Part 1: Makefiles, GDB and Basics of Unix Programming
 
 ### Verify Your Tools
 Create a simple "Hello World" program to ensure your development environment is working.
@@ -54,11 +54,9 @@ $ ./hello
 $ gdb --version
 ```
 
-### Basic Unix Programming with Makefile 
-#### Create a Simple Calculator
-Build a command-line calculator that performs basic arithmetic operations.
+### Makefiles
+Build a command-line calculator, `calculator.ca`, that performs basic arithmetic operations.
 
-Create `calculator.c`:
 ```c
 #include <stdio.h>
 #include <stdlib.h>
@@ -116,8 +114,7 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-#### Create a Makefile
-Create a `Makefile` by default name as `Makefile` for your calculator:
+Create a `Makefile` for your program and save it as Makefile.
 
 ```makefile
 CC=gcc
@@ -136,7 +133,9 @@ debug: $(TARGET)
 
 .PHONY: clean debug
 ```
-**Compiling and Running:**
+**Exercise:** Try to understand the meaning of each line in this `Makefile`. (hint: ask `GPT` or `Cloude` to explain this Makefile for you.)
+
+Compile and run your progam as follows:
 ```bash
 $ make
 $ ./calculator 8 + 9
@@ -144,11 +143,9 @@ $ ./calculator 8 + 9
 **Note:** As can be seen in the line that defines `CFLAGS`, we have `-g`, which compiles your program with debugging symbols. This will allow us to start your program under the control of GDB.
 
 ### Introduction to GDB 
-
-#### Basic GDB Commands
 Using your calculator program, practice these GDB commands:
 
-1. **Starting GDB:** Here you have two ways to start GDB for your `calculator` program.
+1. **Starting GDB:** You have two options to start GDB for your `calculator` program.
 ```bash
 $ make debug
 # or
@@ -171,7 +168,7 @@ $ gdb ./calculator
 (gdb) quit
 ```
 GDB is a feature-rich debugger, and it will take you some time to learn all the features. While you don't need to be a master of GDB for this course, you may use external resources 
-such as AI tools to become more familiar with GDB, if interested. At a high level, you need only two main things: 1) breakpoints and 2) the ability to examine data. Breakpoints can be set with the `b` command inside GDB.
+to become more familiar with GDB, if interested. At a high level, you need only two main things: 1) breakpoints and 2) the ability to examine data. Breakpoints can be set with the `b` command inside GDB.
 
 #### Debugging Exercise
 For this section, let us consider the following program as `simple.c`:
@@ -215,14 +212,15 @@ Type `break main` in the GDB command prompt (or `b` for short) and then run the 
 ```bash
 $ gdb ./simple
 (gdb) break main
-Breakpoint 1 at 0x56b: file main.c, line 21.
+Breakpoint 1 at 0x56b: file simple.c, line 21.
 (gdb) r
 Starting program: ...  
-Breakpoint 1, main () at main.c:21
+Breakpoint 1, main () at simple.c:21
 26          s = sum(100);
 (gdb)
 ```
-The debugger stopped at the beginning of the `main` function (line 26 of `simple.c`). You can examine the source code of the program by typing `list` (or l for short).
+The debugger stopped at the beginning of the `main` function (line 26 of `simple.c`). 
+You can examine the source code of the program by typing `list` (or `l` for short).
 
 ```bash
 (gdb) list
@@ -239,7 +237,7 @@ The debugger stopped at the beginning of the `main` function (line 26 of `simple
 ```
 
 Now you can execute the program line by line by typing `next` (or `n` for short), which executes the following line. By default, typing `next` will skip over functions. 
-Type `step` (or s for short) to step into a function. Try stepping into the `sum` function by running `step`.
+Type `step` (or `s` for short) to step into a function. Try stepping into the `sum` function by running `step`.
 
 ```bash
 (gdb) s
@@ -283,7 +281,7 @@ You can also type `tui enable` in the gdb command prompt. Start the program from
 The source code of the program will scroll in the TUI window at the top of the screen.
 
 #### Examining data
-You can print the values of variables with `print` or `p` for short, e.g., print the values of i and sum:
+You can print the values of variables with `print` or `p` for short, e.g., print the values of `i` and `sum`:
 ```
 (gdb) p i
 (gdb) p sum
@@ -343,7 +341,6 @@ $1 = 50
 ```
 
 #### Exploring crashes
-
 Now, let's look at how to use GDB to debug a crashing program. First, let's generate a program that crashes. 
 Let's have a global variable `a[30]` (it's an array of 30 integers), and then add a function that makes an out-of-bounds array access.
 
@@ -359,7 +356,7 @@ Let's have a global variable `a[30]` (it's an array of 30 integers), and then ad
 #include <sys/wait.h>
 
 
-int a[30]; // the global array
+int a[30]; // the global array 
 unsigned long faulty_array(int n){
     int i;
     unsigned long sum = 0;
@@ -385,7 +382,7 @@ $ ./faultyarray
 Hello world
 Segmentation fault (core dumped)
 ```
-`Segmentation fault` means an illegal memory access. Now, to understand the crash, you can run it under gdb:
+`Segmentation fault` means an illegal memory access error. Now, to understand the crash, you can run it under gdb:
 
 ```
 $ gdb ./faultyarray
@@ -397,16 +394,15 @@ Program received signal SIGSEGV, Segmentation fault.
 0x00000000004005f3 in faulty_array (n=100000) at faultyarray.c:17
 17	        sum = sum + a[I];
 ```
-
 You can use the `backtrace` (`bt`) command to look at the backtrace (a chain of function invocations leading to the crash):
 ```
 (gdb) bt
 #0  0x00000000004005f3 in faulty_array (n=100000) at faultyarray.c:17
 #1  0x000000000040062e in main () at faultyarray.c:25
 ```
-Here, the GDB tells you that `faulty_array` got a segmentation fault at line `17` in `faultyarray.c`. This fault occurred when line 25 was executed as the caller function, i.e., the `main()` function.
-You see that there are two stack frames available (0 for `faulty_array` and 1 for `main`). 
-You can use the `frame` (`f`) command to choose any of the frames and inspect them. For example, let's select frame `#0` and list the crashing code with the `list` command.
+Here, the GDB tells you that `faulty_array` got a segmentation fault at line `17` in `faultyarray.c`. This fault occurred when line 25 was executed as the caller function, i.e., the `main()` function at line `25`.
+You see that there are two stack frames available (0 for `faulty_array` and 1 for `main`). You can use the `frame` (`f`) command to choose any of the frames and inspect them. 
+For example, let's select frame `#0` and list the crashing code with the `list` command.
 ```
 (gdb) f 0
 #0  0x00000000004005f3 in faulty_array (n=100000) at faultyarray.c:17
@@ -422,59 +418,56 @@ You can use the `frame` (`f`) command to choose any of the frames and inspect th
 19    return sum;
 20 }
 ```
-We know that line 17 is the line that causes the crash. We can print the values of the local variable `i`:
+We know that line `17` is the line that causes the crash. We can print the values of the local variable `i`:
 
 ```
 (gdb) p i
 $1 = 34792
 ```
-It is equal to 34792. This should give you enough information on why you crashed (i.e. out-of-bound access, which is illegal). 
+It is equal to 34792. This should provide you with enough information on why you crashed (i.e., out-of-bounds access, which is illegal). 
 Now fix the `faulty_array` function to prevent the program from crashing.
 
-**Deliverable:** Fix the `faultyarray.c` program and submit it as `correctarray.ca`.
+**Deliverable:** Fix the `faultyarray.c` program and submit it as `correctarray.c`.
 
 
 ## Part 2: A Simple UNIX Program
 ### cat program (mycat)
-Use the simple `hello.c` code presented at the beginning of this assignment as a starting point for a simple cat program that you should implement. First, copy the `hello.c` into 
-a program called `mycat.c`. Our cat program displays the contents of a single file on the standard output. It takes either one or no arguments. If one argument is provided (the name of the file), 
+Use the simple `hello.c` code presented at the beginning of this assignment as a starting point for a simple cat program that you should implement. 
+First, copy the `hello.c` into a program called `mycat.c`. Our cat program displays the contents of a single file on the standard output, like the standard `cat` program
+on Unix operating systems. It takes either one or no arguments. If one argument is provided (the name of the file), 
 then the program simply displays the contents on standard output. If no argument is given, the program simply shows the content of the standard input on the standard output.
 
-Here is an example invocation which displays the contents of a file `main.c`, with the name of the file provided as an argument (assuming you call your executable `mycat`):
+Here is an example invocation which displays the contents of a file `file.c`, with the name of the file provided as an argument (assuming you call your executable `mycat`):
 ```
-$ ./mycat main.c
+$ ./mycat file.c
 ```
 Or it should also work like this, where standard input has been redirected to the file:
 ```
-$ ./cat238p < main.c
+$ ./mycat < file.c
 ```
-You should use `read()` and `write()` system calls to read the input and write the output. Since `mycat` takes command line arguments you should change the definition of the `main()` 
+You should use `read()` and `write()` system calls to read the input and write the output. Since `mycat` takes command line arguments, you should change the definition of the `main()` 
 function to allow passing of command line arguments like:
 ```
 int main(int argc, char *argv[])
 ```
 *Note:* You might find it useful to look at the manual page for `read()`, `write()`, and other system calls. For example, type
-`$ man read` and read about the read system call. Here, the manual says that you should include `#include <unistd.h>`
+`$ man read` and read about the `read` system call. Here, the manual says that you should include `#include <unistd.h>`
 in your program to be able to use it, and the system call can be called as a function with the following signature:
 ```
 ssize_t read(int fd, void *buf, size_t count);
 ```
 The manual describes the meaning of the arguments for the system call, return value, and possible return codes. Finally, it lists several related system calls that might be helpful.
-
-Note that when the manual lists a function like `open(2)`, it means that it's described in the 2nd section of the manual, and to get to that specific section, you have to invoke man with an additional argument like this:
-```
-$ man 2 open
-```
-It's a good idea to read the man entry on man itself, i.e., `$ man man`.
+It's a good idea to read the `man` entry on `man` itself, i.e., `$ man man`.
 
 **Important Note:** You are not supposed to just call `exec` and replace the program with the already implemented cat that comes with your OS. 
 Instead, you are expected to use the `open`, `read`, `write`, and `close` system calls.
 
-Submit `mycat.c`, which is your implementation of the cat program in Unix-based operating systems.
+Submit `mycat.c` as the deliverable for this part.
 
 ## What to submit?
-Please name the C files `correctarray.c` for part 1, and `mycat.c` for part 2. Place each part of the assignment into folders with name `part1`, `part2`, then pack them into a zip archive. 
-Please note that `part1` and `part2` must be in the root of the zip archive, not inside yet another folder.
+Please name the C files `correctarray.c` for part 1, and `mycat.c` along with it's `Makefile` for part 2. Place each part of the assignment into folders with name `part1`, `part2`, then pack them into a zip archive. 
+Please note that `part1` and `part2` must be in the root of the zip archive, not inside yet another folder. 
+Additionally, you can include a `readme.txt` file in the root folder of your zip file to provide instructions on how to run your programs.
 
 The structure of the zip file must be the following:
 ```
@@ -483,6 +476,8 @@ homework1.zip
 │   └── correctarray.c
 └── part2
     └── mycat.c
+    └── Makefile
+└── readme.txt
 ```
 
 ## Tips for Success
