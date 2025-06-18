@@ -475,8 +475,8 @@ homework1.zip
 ├── part1
 │   └── correctarray.c
 └── part2
-    └── mycat.c
-    └── Makefile
+│   └── mycat.c
+│   └── Makefile
 └── readme.txt
 ```
 
