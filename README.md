@@ -55,7 +55,7 @@ $ ./hello
 $ gdb --version
 ```
 
-**Deliverable:** Screenshot showing successful compilation and GDB version.
+**Deliverable:** A screenshot showing successful compilation and the GDB version.
 
 ## Part 2: Basic Unix Program with Makefile (20 points)
 
@@ -348,15 +348,151 @@ $1 = 50
 
 ## Exploring crashes
 
+Now, let's look at how to use GDB to debug your crashing programs. First, let's generate a program that crashes. 
+Add a global variable `a[30]` to your program (it's an array of 30 integers), and then add a function that makes an out-of-bounds array access.
+
+```c
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <string.h>
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
 
+int a[30]; // the global array
+unsigned long faulty_array(int n){
+    int i;
+    unsigned long sum = 0;
+    for (i = 0; i < n; i++) {
+        sum = sum + a[i];
+    }
+    return sum;
+}
 
+int main(void) {
+    printf("Hello world\n");
+    long int s;
+    s = faulty_array(100000);
+    printf("Faulty array sum:%ld\n", s);
+    return 0;
+}
+```
+
+Run the above program as `faultyarray.c`. You will get something like the following:
+```
+$ gcc faultyarray.c -o faultyarray -Wall -g
+$ ./faultyarray
+Hello world
+Segmentation fault (core dumped)
+```
+Now, to understand the crash, you can run it under gdb:
+
+```
+$ gdb ./faultyarray
+(gdb) r
+Starting program: /eecs/home/hkh/EECS3221/Assig1/faultyarray 
+Hello world
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00000000004005f3 in faulty_array (n=100000) at faultyarray.c:17
+17	        sum = sum + a[I];
+```
+
+You can use the backtrace (bt) command to look at the backtrace (a chain of function invocations leading to the crash):
+```
+(gdb) bt
+#0  0x00000000004005f3 in faulty_array (n=100000) at faultyarray.c:17
+#1  0x000000000040062e in main () at faultyarray.c:25
+```
+Here, the GDB tells you that faulty_array got a segmentation fault at line `17` in `faultyarray.c`. This fault occurred when line 25 was executed as the caller function, i.e., the `main()` function.
+You see that there are two stack frames available (0 for `faulty_array` and 1 for `main`). 
+You can use the `frame` (`f`) command to choose any of the frames and inspect them. For example, let's select frame `#0` and list the crashing code with the `list` command.
+```
+(gdb) f 0
+#0  0x00000000004005f3 in faulty_array (n=100000) at faultyarray.c:17
+17        sum = sum + a[i];
+(gdb) l
+12 int a[30]; // the global array
+13 unsigned long faulty_array(int n){
+14    int i;
+15    unsigned long sum = 0;
+16    for (i = 0; i < n; i++) {
+17        sum = sum + a[i];
+18    }
+19    return sum;
+20 }
+```
+
+We know that line 17 is the line that causes the crash. We can print the values of the local variable i:
+```
+(gdb) p i
+$1 = 34792
+```
+It is equal to 34792. This should give you enough information on why you crashed. 
+Now fix the faulty_array function to prevent the program from crashing.
+
+**Deliverable:** Fix the `faultyarray.c` program and submit as `correctarray.ca`.
+
+
+## Part 2: A Simple UNIX Program
+### cat program (mycat)
+Use the simple `hello.c` code presented at the beginning of this assignment as a starting point for a simple cat program that you should implement. First, copy the `hello.c` into 
+a program called `mycat.c`. Our cat program displays the contents of a single file on the standard output. It takes either one or no arguments. If one argument is provided (the name of the file), 
+then the program simply displays the contents on standard output. If no argument is given, the program simply shows the content of the standard input on the standard output.
+
+Here is an example invocation which displays the contents of a file `main.c`, with the name of the file provided as an argument (assuming you call your executable `mycat`):
+```
+$ ./mycat main.c
+```
+Or it should also work like this, where standard input has been redirected to the file:
+```
+$ ./cat238p < main.c
+```
+You should use `read()` and `write()` system calls to read the input and write the output. Since `mycat` takes command line arguments you should change the definition of the `main()` 
+function to allow passing of command line arguments like:
+```
+int main(int argc, char *argv[])
+```
+*Note:* You might find it useful to look at the manual page for `read()`, `write()`, and other system calls. For example, type
+`$ man read` and read about the read system call. Here, the manual says that you should include `#include <unistd.h>`
+in your program to be able to use it, and the system call can be called as a function with the following signature:
+```
+ssize_t read(int fd, void *buf, size_t count);
+```
+The manual describes the meaning of the arguments for the system call, return value, and possible return codes. Finally, it lists several related system calls that might be helpful.
+
+Note that when the manual lists a function like `open(2)`, it means that it's described in the 2nd section of the manual, and to get to that specific section, you have to invoke man with an additional argument like this:
+```
+$ man 2 open
+```
+It's a good idea to read the man entry on man itself, i.e., `$ man man`.
+
+**Important Note:** You are not supposed to just call `exec` and replace the program with the already implemented cat that comes with your OS. 
+Instead, you are expected to use the `open`, `read`, `write`, and `close` system calls.
+
+Submit `mycat.c`, which is your implementation of the cat program in Unix-based operating systems.
+
+## What to submit?
+Please name the C files `main.c` for part 1, and `mycat.c` for part 2. Place each part of the assignment into folders with name `part1`, `part2`, then pack them into a zip archive. 
+Please note that `part1` and `part2` must be in the root of the zip archive, not inside yet another folder.
+
+The structure of the zip file must be the following:
+```
+homework1.zip
+├── part1
+│   └── main.c
+└── part2
+    └── mycat.c
+```
 
 ## Tips for Success
 
 1. **Read error messages carefully** - they often tell you exactly what's wrong
 2. **Use incremental development** - build and test frequently
-3. **Learn to read assembly** - use `disassemble` in GDB when confused
 4. **Practice systematic debugging** - hypothesize, test, verify
 5. **Use version control** - consider using git for your project
 
@@ -364,7 +500,6 @@ $1 = 50
 
 - GDB Quick Reference: `help` command within GDB
 - GNU Make Manual: `man make`
-- Valgrind for memory debugging: `man valgrind`
 - Online GDB tutorial: [GNU GDB Documentation](https://www.gnu.org/software/gdb/documentation/)
 
 ## Academic Integrity
