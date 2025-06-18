@@ -1,16 +1,15 @@
-# EECS3221: Unix Programming and GDB Debugging Tutorial
-**Due Date:** [Insert due date]  
+# EECS3221: GDB Debugging and Unix Programming
 **Points:** 100
 
 ## Overview
-This assignment is designed as a hands-on tutorial to familiarize you with building simple Unix programs and debugging them using GDB (GNU Debugger). You'll work through progressively complex examples as you learn essential debugging techniques.
+This tutorial assignment is designed as a hands-on exercise to familiarize you with building simple Unix programs and debugging them using GDB (GNU Debugger). 
+You'll work through progressively complex examples as you learn essential debugging techniques.
 
 ## Learning Objectives
 By completing this assignment, you will:
 - Build and compile C programs in a Unix environment
 - Use Makefiles for project organization
 - Master basic and intermediate GDB commands
-- Debug common programming errors (segmentation faults, logic errors, memory issues)
 - Understand program execution flow and memory layout
 - Practice systematic debugging methodology
 
@@ -19,9 +18,9 @@ By completing this assignment, you will:
 - Basic C programming knowledge
 - Text editor of your choice (vim, emacs, nano, or IDE)
 
-## Part 1: Setting Up Your Environment (10 points)
+## Part 1: Setting Up Your Environment 
 
-### Task 1.1: Verify Your Tools
+### Verify Your Tools
 Create a simple "Hello World" program to ensure your development environment is working.
 
 1. Create a file called `hello.c`:
@@ -55,11 +54,8 @@ $ ./hello
 $ gdb --version
 ```
 
-**Deliverable:** A screenshot showing successful compilation and the GDB version.
-
-## Part 2: Basic Unix Program with Makefile (20 points)
-
-### Task 2.1: Create a Simple Calculator
+### Basic Unix Programming with Makefile 
+#### Create a Simple Calculator
 Build a command-line calculator that performs basic arithmetic operations.
 
 Create `calculator.c`:
@@ -120,7 +116,7 @@ int main(int argc, char *argv[]) {
 }
 ```
 
-### Task 2.2: Create a Makefile
+#### Create a Makefile
 Create a `Makefile` by default name as `Makefile` for your calculator:
 
 ```makefile
@@ -145,13 +141,11 @@ debug: $(TARGET)
 $ make
 $ ./calculator 8 + 9
 ```
-**Note:** As can be seen in the line that defines `CFLAGS`, we have `-g`, which compiles your program with debugging symbols. This will allow us to start your program under the control of gdb.
+**Note:** As can be seen in the line that defines `CFLAGS`, we have `-g`, which compiles your program with debugging symbols. This will allow us to start your program under the control of GDB.
 
-**Deliverable:** Working calculator program with Makefile that compiles without warnings.
+### Introduction to GDB 
 
-## Part 3: Introduction to GDB (25 points)
-
-### Task 3.1: Basic GDB Commands
+#### Basic GDB Commands
 Using your calculator program, practice these GDB commands:
 
 1. **Starting GDB:** Here you have two ways to start GDB for your `calculator` program.
@@ -176,11 +170,11 @@ $ gdb ./calculator
 (gdb) continue
 (gdb) quit
 ```
-GDB is a feature-rich debugger, and it will take you some time to learn all the features. While you don't need to be a master of GDB for this course, you may use AI tools to become more familiar with GDB, if interested.
-At a high level, you need only two main things: 1) breakpoints and 2) the ability to examine data. Breakpoints can be set with the `b` command inside gdb.
+GDB is a feature-rich debugger, and it will take you some time to learn all the features. While you don't need to be a master of GDB for this course, you may use external resources 
+such as AI tools to become more familiar with GDB, if interested. At a high level, you need only two main things: 1) breakpoints and 2) the ability to examine data. Breakpoints can be set with the `b` command inside GDB.
 
-### Task 3.2: Debugging Exercise
-For this section, let us consider the following program:
+#### Debugging Exercise
+For this section, let us consider the following program as `simple.c`:
 
 ```c
 #include <stdlib.h>
@@ -213,13 +207,13 @@ int main(void) {
 ```
 Let us compile the program with debugging symbols (`-g` flag):
 ```bash
-$ gcc main.c -o hello -Wall -g 
+$ gcc simple.c -o simple -Wall -g 
 ```
-
-Running the program independently is not particularly useful. Let's try setting a breakpoint on the "main" function to examine what the program is doing. 
-Type break main in the GDB command prompt (or b for short) and then run the program with r.
+Running the program independently is not particularly useful. Let's try setting a breakpoint on the `main` function to examine what the program is doing. 
+Type `break main` in the GDB command prompt (or `b` for short) and then run the program with `r`.
 
 ```bash
+$ gdb ./simple
 (gdb) break main
 Breakpoint 1 at 0x56b: file main.c, line 21.
 (gdb) r
@@ -228,7 +222,7 @@ Breakpoint 1, main () at main.c:21
 26          s = sum(100);
 (gdb)
 ```
-The debugger stopped at the beginning of the `main` function (line 26 of main.c). You can examine the source code of the program by typing `list` (or l for short).
+The debugger stopped at the beginning of the `main` function (line 26 of `simple.c`). You can examine the source code of the program by typing `list` (or l for short).
 
 ```bash
 (gdb) list
@@ -244,12 +238,12 @@ The debugger stopped at the beginning of the `main` function (line 26 of main.c)
 25    return 0;
 ```
 
-Now you can execute the program line by line by typing `next` (or' n' for short), which executes the following line. By default, typing `next` will skip over functions. Type `step` (or s for short) to step into a function. 
-Try stepping into the `sum` function by running `step`.
+Now you can execute the program line by line by typing `next` (or `n` for short), which executes the following line. By default, typing `next` will skip over functions. 
+Type `step` (or s for short) to step into a function. Try stepping into the `sum` function by running `step`.
 
 ```bash
 (gdb) s
-sum (n=100) at main.c:14
+sum (n=100) at simple.c:14
 14    unsigned long sum = 0;
 ```
 We are now inside the `sum` function. Type `l` to list the source code, and then type `n` repeatedly to execute the function line by line. 
@@ -279,34 +273,36 @@ Note that we can also type `n` once, and then simply hit `Enter`, asking GDB to 
 
 ```
 
-## TUI: Graphical User Interface
+#### TUI: Graphical User Interface
 The second most helpful feature is the TUI mode, which turns GDB into a modern debugger.
-
-You can switch into TUI by pressing Ctrl-X and then typing "1", or start gdb in TUI mode immediately.
+You can switch into TUI by pressing `Ctrl-X` and then typing `1`, or start gdb in TUI mode immediately.
 ```
-$ gdb hello -tui
+$ gdb simple -tui
 ```
+You can also type `tui enable` in the gdb command prompt. Start the program from the beginning and single `step` it with `n` and `s`. 
+The source code of the program will scroll in the TUI window at the top of the screen.
 
-You can also type `tui enable` in the gdb command prompt. Start the program from the beginning and single `step` it with `n` and `s`. The source code of the program will scroll in the TUI window at the top of the screen.
-
-### Examining data
+#### Examining data
 You can print the values of variables with `print` or `p` for short, e.g., print the values of i and sum:
 ```
 (gdb) p i
 (gdb) p sum
 ```
 
-## Conditional breakpoints
-While debugging programs, it's often helpful to see what the program is doing right before it crashes. One way to do this is to step through, one at a time, every statement of the program until we reach the point of execution where we want to examine the state of the program. This works, but sometimes you may wish to just run until you get a particular section of code based on a condition, and stop execution at that point so you can examine data at that point of execution.
+#### Conditional breakpoints
+While debugging programs, it's often helpful to see what the program is doing right before it crashes. One way to do this is to step through the program, one statement at a time, 
+until we reach the point of execution where we want to examine the state of the program. This works, but sometimes you may wish to just run until you get a particular section of code 
+based on a condition, and stop execution at that point so you can examine data at that point of execution.
 
-For instance, in the `sum` function, you might want to examine the state of the program when the index i is equal to 50. You can single `step` until `i` increments and reaches the value 50, but this would be very tedious.
+For instance, in the `sum` function, you might want to examine the state of the program when the index `i` is equal to `50`. 
+You can single `step` until `i` increments and reaches the value `50`, but this would be very tedious.
 
 GDB allows you to set conditional breakpoints. To set a conditional breakpoint to break inside the loop of the `sum` function when the index `i` is equal to 50, we do the following: 
-first, `list` the source code to get the exact source lines; second, set a breakpoint inside the `main.c` file at line 16 with break main.c:16; third, to make the breakpoint trigger only when i is equal to 50 
-(and not trigger for every iteration of the loop) We type `condition 2 i==50`. 
+first, `list` the source code to get the exact source lines; second, set a breakpoint inside the `simple.c` file at line 16 with break `simple.c:16`; 
+third, to make the breakpoint trigger only when `i` is equal to `50` (and not trigger for every iteration of the loop), we type `condition 2 i==50`. 
 
 ```
-$gdb main
+$gdb simple
 ...
 (gdb) break main
 (gdb) l
@@ -321,15 +317,15 @@ $gdb main
 15    for (i = 0; i < n; i++) {
 16        sum = sum + I;
 
-(gdb) break main.c:16
+(gdb) break simple.c:16
 Breakpoint 2 at 0x4005ee: file main.c, line 16.
 
 (gdb) condition 2 i==50
 ```
-
-Note that the 2 in the condition refers to the breakpoint number we were notified about when we initially set the breakpoint. We can also achieve the above in one command statement with the following:
+Note that the 2 in the condition refers to the breakpoint number we were notified about when we initially set the breakpoint. 
+We can also achieve the above in one command statement with the following:
 ```
-(gdb) break main.c:16 if i==50
+(gdb) break simple.c:16 if i==50
 ```
 We now `run` (if you have not already) and continue execution of the program with the `continue` or `c` command.
 ```
@@ -339,17 +335,17 @@ Continuing.
 Breakpoint 2, sum (n=100) at main.c:16
 16              sum = sum + I;
 ```
-When the breakpoint is hit, we can check if the value of i is really 50:
+When the breakpoint is hit, we can check if the value of `i` is really 50:
 ```
 (gdb) p i
 $1 = 50
 (gdb)
 ```
 
-## Exploring crashes
+#### Exploring crashes
 
-Now, let's look at how to use GDB to debug your crashing programs. First, let's generate a program that crashes. 
-Add a global variable `a[30]` to your program (it's an array of 30 integers), and then add a function that makes an out-of-bounds array access.
+Now, let's look at how to use GDB to debug a crashing program. First, let's generate a program that crashes. 
+Let's have a global variable `a[30]` (it's an array of 30 integers), and then add a function that makes an out-of-bounds array access.
 
 ```c
 #include <stdlib.h>
@@ -389,7 +385,7 @@ $ ./faultyarray
 Hello world
 Segmentation fault (core dumped)
 ```
-Now, to understand the crash, you can run it under gdb:
+`Segmentation fault` means an illegal memory access. Now, to understand the crash, you can run it under gdb:
 
 ```
 $ gdb ./faultyarray
@@ -402,13 +398,13 @@ Program received signal SIGSEGV, Segmentation fault.
 17	        sum = sum + a[I];
 ```
 
-You can use the backtrace (bt) command to look at the backtrace (a chain of function invocations leading to the crash):
+You can use the `backtrace` (`bt`) command to look at the backtrace (a chain of function invocations leading to the crash):
 ```
 (gdb) bt
 #0  0x00000000004005f3 in faulty_array (n=100000) at faultyarray.c:17
 #1  0x000000000040062e in main () at faultyarray.c:25
 ```
-Here, the GDB tells you that faulty_array got a segmentation fault at line `17` in `faultyarray.c`. This fault occurred when line 25 was executed as the caller function, i.e., the `main()` function.
+Here, the GDB tells you that `faulty_array` got a segmentation fault at line `17` in `faultyarray.c`. This fault occurred when line 25 was executed as the caller function, i.e., the `main()` function.
 You see that there are two stack frames available (0 for `faulty_array` and 1 for `main`). 
 You can use the `frame` (`f`) command to choose any of the frames and inspect them. For example, let's select frame `#0` and list the crashing code with the `list` command.
 ```
@@ -426,16 +422,16 @@ You can use the `frame` (`f`) command to choose any of the frames and inspect th
 19    return sum;
 20 }
 ```
+We know that line 17 is the line that causes the crash. We can print the values of the local variable `i`:
 
-We know that line 17 is the line that causes the crash. We can print the values of the local variable i:
 ```
 (gdb) p i
 $1 = 34792
 ```
-It is equal to 34792. This should give you enough information on why you crashed. 
-Now fix the faulty_array function to prevent the program from crashing.
+It is equal to 34792. This should give you enough information on why you crashed (i.e. out-of-bound access, which is illegal). 
+Now fix the `faulty_array` function to prevent the program from crashing.
 
-**Deliverable:** Fix the `faultyarray.c` program and submit as `correctarray.ca`.
+**Deliverable:** Fix the `faultyarray.c` program and submit it as `correctarray.ca`.
 
 
 ## Part 2: A Simple UNIX Program
@@ -477,14 +473,14 @@ Instead, you are expected to use the `open`, `read`, `write`, and `close` system
 Submit `mycat.c`, which is your implementation of the cat program in Unix-based operating systems.
 
 ## What to submit?
-Please name the C files `main.c` for part 1, and `mycat.c` for part 2. Place each part of the assignment into folders with name `part1`, `part2`, then pack them into a zip archive. 
+Please name the C files `correctarray.c` for part 1, and `mycat.c` for part 2. Place each part of the assignment into folders with name `part1`, `part2`, then pack them into a zip archive. 
 Please note that `part1` and `part2` must be in the root of the zip archive, not inside yet another folder.
 
 The structure of the zip file must be the following:
 ```
 homework1.zip
 ├── part1
-│   └── main.c
+│   └── correctarray.c
 └── part2
     └── mycat.c
 ```
