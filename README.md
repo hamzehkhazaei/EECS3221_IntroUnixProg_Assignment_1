@@ -500,3 +500,4 @@ This is an individual assignment. You may discuss concepts with classmates, but 
 ---
 
 **Good luck and happy debugging!** 🐛🔍
+**Instructor: Hamzeh Khazaei**
