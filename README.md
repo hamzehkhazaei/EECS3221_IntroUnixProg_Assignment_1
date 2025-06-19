@@ -432,7 +432,7 @@ Now fix the `faulty_array` function to prevent the program from crashing.
 
 ## Part 2: A Simple UNIX Program
 ### Reimplementation of cat program
-Use the simple `hello.c` code presented at the beginning of this assignment as a starting point for a simple cat program that you should implement. 
+Use our simple [hello.c](source/hello.c) as a starting point for a simple cat program that you should implement. 
 First, copy the `hello.c` into a program called `mycat.c`. Our cat program displays the contents of a single file on the standard output, like the standard `cat` program
 on Unix operating systems. It takes either one or no arguments. If one argument is provided (the name of the file), 
 then the program simply displays the contents on standard output. If no argument is given, the program simply shows the content of the standard input on the standard output.
