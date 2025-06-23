@@ -271,7 +271,7 @@ Note that we can also type `n` once, and then simply hit `Enter`, asking GDB to 
 
 ```
 
-#### TUI: Graphical User Interface
+#### Text User Interface (TUI)
 The second most helpful feature is the TUI mode, which turns GDB into a modern debugger.
 You can switch into TUI by pressing `Ctrl-X` and then typing `1`, or start gdb in TUI mode immediately.
 ```
