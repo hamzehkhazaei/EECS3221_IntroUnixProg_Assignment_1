@@ -471,7 +471,7 @@ Additionally, you can include a `readme.txt` file in the root folder of your zip
 
 The structure of the zip file must be the following:
 ```
-lab1.zip
+Assign1.zip
 ├── part1
 │   └── correctarray.c
 └── part2
